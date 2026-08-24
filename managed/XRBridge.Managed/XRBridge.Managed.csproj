@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../unity/com.ritwij.xrbridge/Runtime/NativeTypes.cs" Link="NativeTypes.cs" />
+    <Compile Include="../../unity/com.ritwij.xrbridge/Runtime/XRBridgeClient.cs" Link="XRBridgeClient.cs" />
+  </ItemGroup>
+</Project>
