@@ -83,6 +83,14 @@ xrbridge_result xrbridge_submit_openxr_pose(xrbridge_device device, const xrbrid
     const xrbridge::Transform openxr{{pose->position.x, pose->position.y, pose->position.z},
                                      {pose->rotation.x, pose->rotation.y, pose->rotation.z,
                                       pose->rotation.w}};
+    if (!xrbridge::is_finite(openxr.position)) {
+      set_error(XRBRIDGE_INVALID_ARGUMENT);
+      return XRBRIDGE_INVALID_ARGUMENT;
+    }
+    if (!xrbridge::is_finite(openxr.rotation) || xrbridge::norm(openxr.rotation) < 1e-12) {
+      set_error(XRBRIDGE_INVALID_QUATERNION);
+      return XRBRIDGE_INVALID_QUATERNION;
+    }
     const auto result = active->submit(
         to_native(device), {xrbridge::openxr_to_unity(openxr), pose->timestamp_ns});
     const auto converted = to_c(result);

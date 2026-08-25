@@ -209,6 +209,10 @@ TEST_F(CApiTest, RejectsNonFiniteInputWithoutThrowingAcrossAbi) {
   ASSERT_EQ(xrbridge_initialize(&config), XRBRIDGE_OK);
   const xrbridge_pose invalid{{std::numeric_limits<double>::quiet_NaN(), 0.0, 0.0},
                               {0.0, 0.0, 0.0, 1.0}, 1};
-  EXPECT_NE(xrbridge_submit_openxr_pose(XRBRIDGE_DEVICE_HEAD, &invalid), XRBRIDGE_OK);
+  EXPECT_EQ(xrbridge_submit_openxr_pose(XRBRIDGE_DEVICE_HEAD, &invalid),
+            XRBRIDGE_INVALID_ARGUMENT);
+  const xrbridge_pose invalid_rotation{{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 0.0}, 2};
+  EXPECT_EQ(xrbridge_submit_openxr_pose(XRBRIDGE_DEVICE_HEAD, &invalid_rotation),
+            XRBRIDGE_INVALID_QUATERNION);
   EXPECT_STRNE(xrbridge_last_error(), "");
 }
