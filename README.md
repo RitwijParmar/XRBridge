@@ -11,10 +11,34 @@ explicitly laid-out C# P/Invoke types.
 
 ![XRBridge data flow](docs/architecture.svg)
 
-[Watch the narrated native replay walkthrough](https://github.com/RitwijParmar/XRBridge/releases/download/v1.0.0/XRBridge-native-demo-v1.0.0.mp4)
-(2:36, 1080p). It explains the coordinate contract, buffer and ABI boundaries,
-test matrix, and measured benchmark. The video uses the real native build and
-committed synthetic benchmark; it is not presented as Unity or headset footage.
+[Watch the running native demo](https://github.com/RitwijParmar/XRBridge/releases/download/v1.0.0/XRBridge-live-runtime-demo-v1.0.0.mp4).
+This is an 18-second capture of the compiled C++ process: live 90 Hz poses,
+interpolated queries, fault injection, staleness detection, and recovery. It is
+not a slide deck and is not presented as Unity or headset footage.
+
+**[Open the live XRBridge Control Lab on Google Cloud](https://xrbridge-live-demo-980932890834.us-east1.run.app/)**
+
+## Live native control lab
+
+`xrbridge_demo` is a dependency-free HTTP server linked to the same shared
+library Unity consumes. Its producer submits three synthetic OpenXR-space poses
+at 90 Hz through the public C API. The dashboard queries Unity-space poses at a
+six-millisecond interpolation offset and displays only returned poses and native
+runtime counters.
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target xrbridge_demo --parallel
+./build/xrbridge_demo
+# open http://localhost:8080
+```
+
+The controls make real API calls: duplicate and out-of-order timestamps, a zero
+quaternion, a capacity overflow burst, and producer pause/resume. **Run
+Demonstration Sequence** exercises every path and makes the corresponding
+rejection, eviction, and stale-query counters change on screen. The CTest suite
+also runs `xrbridge_demo --self-test`. `Dockerfile` packages this exact binary
+for Cloud Run; `/api/health` is the deployment health endpoint.
 
 ## Coordinate contract
 

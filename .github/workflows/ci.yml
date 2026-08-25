@@ -26,6 +26,9 @@ jobs:
         run: cmake --build build --parallel
       - name: Test
         run: ctest --test-dir build --output-on-failure --output-junit test-results.xml
+      - name: Smoke-test live demo executable
+        shell: bash
+        run: ./build/xrbridge_demo --self-test
       - name: Run benchmark
         if: matrix.build_type == 'Release'
         shell: bash

@@ -84,10 +84,12 @@ xrbridge_result xrbridge_submit_openxr_pose(xrbridge_device device, const xrbrid
                                      {pose->rotation.x, pose->rotation.y, pose->rotation.z,
                                       pose->rotation.w}};
     if (!xrbridge::is_finite(openxr.position)) {
+      active->record_invalid_submission();
       set_error(XRBRIDGE_INVALID_ARGUMENT);
       return XRBRIDGE_INVALID_ARGUMENT;
     }
     if (!xrbridge::is_finite(openxr.rotation) || xrbridge::norm(openxr.rotation) < 1e-12) {
+      active->record_invalid_submission();
       set_error(XRBRIDGE_INVALID_QUATERNION);
       return XRBRIDGE_INVALID_QUATERNION;
     }
@@ -101,6 +103,7 @@ xrbridge_result xrbridge_submit_openxr_pose(xrbridge_device device, const xrbrid
     }
     return converted;
   } catch (const std::invalid_argument& error) {
+    active->record_invalid_submission();
     last_error_message = error.what();
     return XRBRIDGE_INVALID_QUATERNION;
   } catch (const std::exception& error) {
