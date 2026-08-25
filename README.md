@@ -11,6 +11,11 @@ explicitly laid-out C# P/Invoke types.
 
 ![XRBridge data flow](docs/architecture.svg)
 
+[Watch the narrated native replay walkthrough](https://github.com/RitwijParmar/XRBridge/releases/download/v1.0.0/XRBridge-native-demo-v1.0.0.mp4)
+(2:36, 1080p). It explains the coordinate contract, buffer and ABI boundaries,
+test matrix, and measured benchmark. The video uses the real native build and
+committed synthetic benchmark; it is not presented as Unity or headset footage.
+
 ## Coordinate contract
 
 OpenXR uses +Y up, +X right, and -Z forward. Unity uses +Y up, +X right, and +Z
