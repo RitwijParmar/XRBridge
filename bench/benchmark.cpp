@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #if defined(_WIN32)
@@ -20,6 +21,7 @@
 #else
 #include <sys/utsname.h>
 #include <fstream>
+#include <sys/sysinfo.h>
 #endif
 
 namespace {
@@ -77,6 +79,21 @@ std::string compiler_description() {
   return std::string("MSVC ") + std::to_string(_MSC_VER);
 #else
   return "unknown";
+#endif
+}
+
+std::uint64_t memory_bytes() {
+#if defined(_WIN32)
+  MEMORYSTATUSEX status{};
+  status.dwLength = sizeof(status);
+  return GlobalMemoryStatusEx(&status) ? status.ullTotalPhys : 0;
+#elif defined(__APPLE__)
+  std::uint64_t value = 0;
+  std::size_t size = sizeof(value);
+  return sysctlbyname("hw.memsize", &value, &size, nullptr, 0) == 0 ? value : 0;
+#else
+  sysinfo value{};
+  return sysinfo(&value) == 0 ? static_cast<std::uint64_t>(value.totalram) * value.mem_unit : 0;
 #endif
 }
 
@@ -194,6 +211,8 @@ int main(int argc, char** argv) {
          << "  \"max_angular_round_trip_error_rad\": " << max_angular_error << ",\n"
          << "  \"environment\": {\n"
          << "    \"cpu\": \"" << json_escape(cpu_description()) << "\",\n"
+         << "    \"logical_threads\": " << std::thread::hardware_concurrency() << ",\n"
+         << "    \"memory_bytes\": " << memory_bytes() << ",\n"
          << "    \"os\": \"" << json_escape(os_description()) << "\",\n"
          << "    \"compiler\": \"" << json_escape(compiler_description()) << "\",\n"
          << "    \"build_type\": \"" << build_type << "\",\n"

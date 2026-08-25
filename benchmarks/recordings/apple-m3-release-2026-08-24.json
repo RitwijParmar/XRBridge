@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "sample_count": 200000,
+  "query_count": 199999,
+  "elapsed_seconds": 0.040749292,
+  "throughput_operations_per_second": 9816096.92752453,
+  "median_query_latency_ns": 83,
+  "p95_query_latency_ns": 84,
+  "dropped_samples": 0,
+  "interpolation_failures": 0,
+  "max_position_round_trip_error_m": 0,
+  "max_angular_round_trip_error_rad": 0,
+  "environment": {
+    "cpu": "Apple M3",
+    "logical_threads": 8,
+    "memory_bytes": 17179869184,
+    "os": "Darwin 25.2.0 arm64",
+    "compiler": "Clang 17.0.0 (clang-1700.6.3.2)",
+    "build_type": "Release",
+    "command": "./build-release/xrbridge_benchmark --samples 200000 --output benchmarks/recordings/apple-m3-release-2026-08-24.json"
+  }
+}
