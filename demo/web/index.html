@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>XRBridge // Live Native Control Lab</title>
+  <style>
+    :root { color-scheme: dark; --ink:#e9fff7; --muted:#83a49a; --lime:#a9ff68; --cyan:#45e6ff; --red:#ff627d; --panel:#0b1615dd; }
+    * { box-sizing:border-box }
+    body { margin:0; min-height:100vh; overflow-x:hidden; background:#030807; color:var(--ink); font:14px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace; }
+    body:before { content:""; position:fixed; inset:0; pointer-events:none; opacity:.18; background:repeating-linear-gradient(0deg,transparent 0 3px,#baffe808 4px); }
+    .shell { width:min(1500px,100%); margin:auto; padding:22px; }
+    header { display:flex; justify-content:space-between; gap:24px; align-items:end; margin-bottom:14px; }
+    .eyebrow { color:var(--lime); letter-spacing:.18em; font-size:11px; text-transform:uppercase; }
+    h1 { margin:4px 0 0; font:700 clamp(24px,4vw,48px)/1 ui-monospace,monospace; letter-spacing:-.06em; }
+    h1 span { color:var(--cyan); }
+    .live { border:1px solid #a9ff6850; padding:8px 12px; color:var(--lime); background:#a9ff680b; }
+    .live i { display:inline-block; width:7px; height:7px; margin-right:7px; border-radius:50%; background:var(--lime); box-shadow:0 0 12px var(--lime); animation:pulse 1s infinite alternate; }
+    @keyframes pulse { to { opacity:.35 } }
+    .grid { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(310px,.7fr); gap:14px; }
+    .panel { border:1px solid #9debd326; background:linear-gradient(140deg,#0b1715ed,#06100fee); box-shadow:0 18px 50px #0008; }
+    .viewport { position:relative; min-height:650px; overflow:hidden; }
+    canvas { display:block; width:100%; height:650px; }
+    .stamp { position:absolute; top:14px; left:14px; color:#b9d6cd; background:#03100ed9; border:1px solid #7adac933; padding:8px 10px; font-size:11px; }
+    .legend { position:absolute; right:14px; top:14px; display:grid; gap:6px; text-align:right; color:var(--muted); font-size:11px; }
+    .dot { display:inline-block; width:7px; height:7px; margin-left:6px; border-radius:50%; }
+    aside { padding:16px; }
+    .section { border-bottom:1px solid #9debd31e; padding:0 0 16px; margin:0 0 16px; }
+    .section:last-child { border:0; margin:0; }
+    .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.16em; margin-bottom:8px; }
+    .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .metric { min-height:78px; padding:10px; background:#0005; border:1px solid #a9ff681c; }
+    .metric b { display:block; font-size:21px; color:var(--lime); letter-spacing:-.05em; }
+    .metric span { color:var(--muted); font-size:10px; }
+    .status { display:flex; justify-content:space-between; padding:5px 0; color:var(--muted); }
+    .status strong { color:var(--ink); font-weight:500; }
+    .actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    button { font:inherit; color:var(--ink); cursor:pointer; min-height:43px; border:1px solid #5ad6be48; background:#0b2520; transition:.16s; }
+    button:hover { border-color:var(--lime); color:var(--lime); transform:translateY(-1px); }
+    button.danger { color:#ff9dad; border-color:#ff627d55; background:#291018; }
+    button.wide { grid-column:1/-1; }
+    #event { min-height:58px; padding:9px; border-left:2px solid var(--cyan); background:#45e6ff08; color:#bfeaf0; font-size:12px; }
+    #error { display:none; color:#ff9dad; }
+    footer { display:flex; justify-content:space-between; color:#607c75; font-size:10px; padding-top:12px; }
+    @media(max-width:900px){ .grid{grid-template-columns:1fr}.viewport{min-height:520px}canvas{height:520px}header{align-items:start}.live{font-size:10px} }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header>
+    <div><div class="eyebrow">Native systems proof // वास्तविक runtime</div><h1>XR<span>BRIDGE</span> CONTROL LAB</h1></div>
+    <div class="live"><i></i><span id="connection">C++ PROCESS LIVE</span></div>
+  </header>
+  <div class="grid">
+    <section class="panel viewport">
+      <canvas id="scene"></canvas>
+      <div class="stamp">OPENXR RH → C ABI → UNITY LH<br><span id="clock">query −6.00 ms</span></div>
+      <div class="legend">HEAD <span class="dot" style="background:#a9ff68"></span><br>LEFT <span class="dot" style="background:#45e6ff"></span><br>RIGHT <span class="dot" style="background:#ff627d"></span></div>
+    </section>
+    <aside class="panel">
+      <div class="section">
+        <div class="label">Live transport counters</div>
+        <div class="metric-grid">
+          <div class="metric"><b id="submitted">0</b><span>poses accepted</span></div>
+          <div class="metric"><b id="interpolated">0</b><span>SLERP queries</span></div>
+          <div class="metric"><b id="age">0.00</b><span>sample age / ms</span></div>
+          <div class="metric"><b id="evicted">0</b><span>capacity evictions</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">ABI state</div>
+        <div class="status"><span>producer</span><strong id="producer">90 Hz</strong></div>
+        <div class="status"><span>queries</span><strong id="queries">0</strong></div>
+        <div class="status"><span>invalid rejected</span><strong id="invalid">0</strong></div>
+        <div class="status"><span>out-of-order</span><strong id="ooo">0</strong></div>
+        <div class="status"><span>duplicates</span><strong id="dupes">0</strong></div>
+        <div class="status"><span>stale queries</span><strong id="stale">0</strong></div>
+      </div>
+      <div class="section">
+        <div class="label">Fault injection // असली validation</div>
+        <div class="actions">
+          <button data-fault="duplicate">Duplicate TS</button>
+          <button data-fault="out-of-order">Old TS</button>
+          <button data-fault="invalid">Zero Quaternion</button>
+          <button data-fault="overflow">Overflow Burst</button>
+          <button class="danger wide" id="pause">Pause Producer</button>
+          <button class="wide" id="sequence">Run Demonstration Sequence</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="label">Last native event</div><div id="event">waiting for runtime telemetry…</div><div id="error"></div>
+      </div>
+    </aside>
+  </div>
+  <footer><span>NO UNITY SIMULATION // DIRECT XRBRIDGE C API</span><span id="runtime">connecting…</span></footer>
+</main>
+<script>
+const $=id=>document.getElementById(id), canvas=$('scene'), ctx=canvas.getContext('2d');
+const colors=['#a9ff68','#45e6ff','#ff627d'], names=['H','L','R'], trails=[[],[],[]];
+let state=null,lastEvent=-1,runningSequence=false;
+function resize(){const d=devicePixelRatio||1,r=canvas.getBoundingClientRect();canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',resize);resize();
+function project(p,w,h){const depth=1.9+p[2],s=Math.max(.55,2.4/depth);return [w/2+p[0]*w*.48*s,h*.81-p[1]*h*.34*s,s]}
+function grid(w,h){ctx.lineWidth=1;for(let i=-9;i<=9;i++){const a=project([i*.18,0,.65],w,h),b=project([i*.18,0,-1.15],w,h);ctx.strokeStyle=i===0?'#65d7c43a':'#65d7c418';ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke()}for(let z=-1.15;z<.8;z+=.18){const a=project([-1.7,0,z],w,h),b=project([1.7,0,z],w,h);ctx.strokeStyle='#65d7c418';ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke()}}
+function drawPose(p,index,w,h){if(p.result!=='ok')return;const point=project(p.position,w,h);trails[index].push(point);if(trails[index].length>90)trails[index].shift();ctx.beginPath();trails[index].forEach((v,i)=>i?ctx.lineTo(v[0],v[1]):ctx.moveTo(v[0],v[1]));ctx.strokeStyle=colors[index]+'65';ctx.lineWidth=2;ctx.stroke();const size=(index?16:27)*point[2];ctx.save();ctx.translate(point[0],point[1]);ctx.shadowBlur=24;ctx.shadowColor=colors[index];ctx.strokeStyle=colors[index];ctx.fillStyle='#07110f';ctx.lineWidth=2;if(index===0){ctx.strokeRect(-size,-size*.55,size*2,size*1.1);ctx.beginPath();ctx.moveTo(-size*.55,size*.55);ctx.lineTo(-size*.35,size);ctx.moveTo(size*.55,size*.55);ctx.lineTo(size*.35,size);ctx.stroke()}else{ctx.rotate(index===1?-.34:.34);ctx.beginPath();ctx.roundRect(-size*.55,-size,size*1.1,size*2,7);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(0,-size*.45,size*.22,0,Math.PI*2);ctx.stroke()}ctx.fillStyle=colors[index];ctx.font='700 11px ui-monospace';ctx.fillText(names[index],size*.8,-size*.8);ctx.restore()}
+function draw(){requestAnimationFrame(draw);const d=devicePixelRatio||1,w=canvas.width/d,h=canvas.height/d;ctx.clearRect(0,0,w,h);const glow=ctx.createRadialGradient(w*.5,h*.48,20,w*.5,h*.48,w*.7);glow.addColorStop(0,'#123f3655');glow.addColorStop(1,'#020706');ctx.fillStyle=glow;ctx.fillRect(0,0,w,h);grid(w,h);if(state)state.poses.forEach((p,i)=>drawPose(p,i,w,h));ctx.fillStyle='#6f9389';ctx.font='10px ui-monospace';ctx.fillText('LIVE INTERPOLATED UNITY-SPACE POSES',18,h-18)}draw();
+function num(v){return Number(v).toLocaleString()}
+async function poll(){try{const r=await fetch('/api/frame',{cache:'no-store'});if(!r.ok)throw Error(r.status);state=await r.json();const s=state.stats;$('submitted').textContent=num(s.submitted);$('interpolated').textContent=num(s.interpolated);$('age').textContent=state.sample_age_ms.toFixed(2);$('evicted').textContent=num(s.dropped_overflow);$('queries').textContent=num(s.queries);$('invalid').textContent=num(s.rejected_invalid);$('ooo').textContent=num(s.rejected_out_of_order);$('dupes').textContent=num(s.rejected_duplicate);$('stale').textContent=num(s.stale_queries);$('producer').textContent=state.paused?'PAUSED':'90 Hz';$('producer').style.color=state.paused?'#ff627d':'#e9fff7';$('pause').textContent=state.paused?'Resume Producer':'Pause Producer';$('runtime').textContent=state.runtime;if(state.event_sequence!==lastEvent){lastEvent=state.event_sequence;$('event').textContent=state.last_event}$('connection').textContent='C++ PROCESS LIVE';$('error').style.display='none'}catch(e){$('connection').textContent='RUNTIME OFFLINE';$('error').style.display='block';$('error').textContent='telemetry failed: '+e.message}setTimeout(poll,50)}poll();
+async function post(path){const r=await fetch(path,{method:'POST'});if(!r.ok)throw Error(await r.text());return r.json()}
+document.querySelectorAll('[data-fault]').forEach(b=>b.onclick=()=>post('/api/inject/'+b.dataset.fault));$('pause').onclick=()=>post('/api/control/pause');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+$('sequence').onclick=async()=>{if(runningSequence)return;runningSequence=true;$('sequence').textContent='Sequence running…';await post('/api/inject/duplicate');await wait(1200);await post('/api/inject/out-of-order');await wait(1200);await post('/api/inject/invalid');await wait(1200);await post('/api/inject/overflow');await wait(1200);await post('/api/control/pause');await wait(1400);await post('/api/control/pause');$('sequence').textContent='Run Demonstration Sequence';runningSequence=false};
+</script>
+</body>
+</html>

@@ -215,4 +215,7 @@ TEST_F(CApiTest, RejectsNonFiniteInputWithoutThrowingAcrossAbi) {
   EXPECT_EQ(xrbridge_submit_openxr_pose(XRBRIDGE_DEVICE_HEAD, &invalid_rotation),
             XRBRIDGE_INVALID_QUATERNION);
   EXPECT_STRNE(xrbridge_last_error(), "");
+  xrbridge_stats stats{};
+  ASSERT_EQ(xrbridge_get_stats(&stats), XRBRIDGE_OK);
+  EXPECT_EQ(stats.rejected_invalid, 2U);
 }

@@ -43,6 +43,7 @@ class PoseBuffer final {
                              TimestampedPose& output) const;
   [[nodiscard]] RuntimeStats stats() const;
   [[nodiscard]] std::size_t size(Device device) const;
+  void record_invalid_submission();
 
  private:
   static constexpr std::size_t device_count = 3;

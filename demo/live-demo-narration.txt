@@ -1,0 +1,1 @@
+XRBridge is now running as a compiled C++ process, not a slide. At ninety hertz, OpenXR poses cross the C ABI, convert into Unity space, and are interpolated live. Watch the sequence reject duplicate, out-of-order, and invalid quaternion samples, force buffer overflow, detect staleness when paused, then recover to ninety hertz. Every counter comes directly from XRBridge.

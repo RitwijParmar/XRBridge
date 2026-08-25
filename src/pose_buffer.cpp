@@ -98,6 +98,11 @@ RuntimeStats PoseBuffer::stats() const {
   return stats_;
 }
 
+void PoseBuffer::record_invalid_submission() {
+  std::scoped_lock lock(mutex_);
+  ++stats_.rejected_invalid;
+}
+
 std::size_t PoseBuffer::size(Device device) const {
   std::scoped_lock lock(mutex_);
   return index(device) < device_count ? samples_[index(device)].size() : 0;
