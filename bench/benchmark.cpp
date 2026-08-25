@@ -92,7 +92,7 @@ std::uint64_t memory_bytes() {
   std::size_t size = sizeof(value);
   return sysctlbyname("hw.memsize", &value, &size, nullptr, 0) == 0 ? value : 0;
 #else
-  sysinfo value{};
+  struct sysinfo value {};
   return sysinfo(&value) == 0 ? static_cast<std::uint64_t>(value.totalram) * value.mem_unit : 0;
 #endif
 }
