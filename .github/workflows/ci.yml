@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    name: ${{ matrix.os }} / ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        build_type: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+      - name: Build
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --output-junit test-results.xml
+      - name: Run benchmark
+        if: matrix.build_type == 'Release'
+        shell: bash
+        run: ./build/xrbridge_benchmark --samples 100000 --output build/benchmark.json
+      - name: Upload reports and native library
+        uses: actions/upload-artifact@v4
+        with:
+          name: xrbridge-${{ matrix.os }}-${{ matrix.build_type }}
+          if-no-files-found: error
+          path: |
+            build/test-results.xml
+            build/benchmark.json
+            build/xrbridge.dll
+            build/libxrbridge.dylib
+            build/libxrbridge.so
+
+  sanitizers:
+    name: Linux ASan + UBSan
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure sanitizers
+        run: >-
+          cmake -S . -B build-sanitize -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          -DXRBRIDGE_ENABLE_SANITIZERS=ON -DXRBRIDGE_BUILD_BENCHMARK=OFF
+      - name: Build
+        run: cmake --build build-sanitize --parallel
+      - name: Test under sanitizers
+        run: ctest --test-dir build-sanitize --output-on-failure --output-junit sanitizer-results.xml
+      - name: Upload sanitizer report
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitizer-results
+          path: build-sanitize/sanitizer-results.xml
+
+  managed:
+    name: Managed ABI compile and format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Compile non-Unity binding subset
+        run: dotnet build managed/XRBridge.Managed/XRBridge.Managed.csproj --configuration Release
+      - name: Verify formatting
+        run: dotnet format managed/XRBridge.Managed/XRBridge.Managed.csproj --verify-no-changes
+      - name: Validate package metadata and repository hygiene
+        shell: bash
+        run: |
+          python -m json.tool unity/com.ritwij.xrbridge/package.json >/dev/null
+          python -m json.tool "unity/com.ritwij.xrbridge/Samples~/XRBridge Demo/Resources/xrbridge_demo_trace.json" >/dev/null
+          if git grep -nE 'TODO|FIXME|placeholder' -- ':!LICENSE' ':!.github/workflows/ci.yml'; then exit 1; fi

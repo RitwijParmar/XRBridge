@@ -53,7 +53,7 @@ namespace XRBridge
                 enabled = false;
                 return;
             }
-            client = new XRBridgeClient();
+            client = new XRBridgeClient(256, 300_000_000);
             epochNs = MonotonicClock.NowNanoseconds;
             durationNs = replay.samples[replay.samples.Length - 1].timestampNs + 1;
         }

@@ -25,7 +25,7 @@ namespace XRBridge
         {
             try
             {
-                client = new XRBridgeClient();
+                client = new XRBridgeClient(256, 300_000_000);
                 ConnectionStatus = "Native bridge connected";
             }
             catch (System.Exception error)
