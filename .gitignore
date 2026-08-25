@@ -18,3 +18,5 @@ build*/
 [Ll]ogs/
 UserSettings/
 TestResults/
+bin/
+obj/

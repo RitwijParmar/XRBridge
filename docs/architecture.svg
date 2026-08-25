@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="280" viewBox="0 0 960 280" role="img" aria-labelledby="title desc">
+  <title id="title">XRBridge data flow</title>
+  <desc id="desc">OpenXR or synthetic poses flow through coordinate validation, device buffers, the stable C API, P Invoke, and Unity transforms.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1324"/><stop offset="1" stop-color="#151f38"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7dd3fc"/></marker>
+  </defs>
+  <rect width="960" height="280" rx="18" fill="url(#background)"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" text-anchor="middle">
+    <g fill="#14213d" stroke="#38bdf8" stroke-width="2">
+      <rect x="28" y="72" width="142" height="112" rx="12"/>
+      <rect x="205" y="72" width="160" height="112" rx="12"/>
+      <rect x="400" y="42" width="174" height="172" rx="12"/>
+      <rect x="609" y="72" width="142" height="112" rx="12"/>
+      <rect x="786" y="72" width="146" height="112" rx="12"/>
+    </g>
+    <g fill="#e2e8f0" font-size="16" font-weight="600">
+      <text x="99" y="112">OpenXR</text><text x="99" y="136">or trace</text><text x="99" y="160" fill="#94a3b8" font-size="12">RH poses</text>
+      <text x="285" y="105">validate</text><text x="285" y="130">normalize</text><text x="285" y="155">reflect Z</text>
+      <text x="487" y="78">bounded buffers</text><text x="487" y="112" fill="#f97316">head</text><text x="487" y="142" fill="#facc15">left</text><text x="487" y="172" fill="#4ade80">right</text><text x="487" y="197" fill="#94a3b8" font-size="12">lookup + SLERP</text>
+      <text x="680" y="112">C ABI</text><text x="680" y="138">P/Invoke</text><text x="680" y="160" fill="#94a3b8" font-size="12">value types</text>
+      <text x="859" y="112">Unity</text><text x="859" y="137">Transforms</text><text x="859" y="160" fill="#94a3b8" font-size="12">LH poses</text>
+    </g>
+    <g stroke="#7dd3fc" stroke-width="2.5" marker-end="url(#arrow)"><line x1="170" y1="128" x2="197" y2="128"/><line x1="365" y1="128" x2="392" y2="128"/><line x1="574" y1="128" x2="601" y2="128"/><line x1="751" y1="128" x2="778" y2="128"/></g>
+    <text x="480" y="252" fill="#94a3b8" font-size="13">thread-safe ownership · explicit errors · deterministic replay</text>
+  </g>
+</svg>
