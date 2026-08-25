@@ -16,6 +16,8 @@ This is an 18-second capture of the compiled C++ process: live 90 Hz poses,
 interpolated queries, fault injection, staleness detection, and recovery. It is
 not a slide deck and is not presented as Unity or headset footage.
 
+**[Open the live XRBridge Control Lab on Google Cloud](https://xrbridge-live-demo-980932890834.us-east1.run.app/)**
+
 ## Live native control lab
 
 `xrbridge_demo` is a dependency-free HTTP server linked to the same shared
@@ -36,7 +38,7 @@ quaternion, a capacity overflow burst, and producer pause/resume. **Run
 Demonstration Sequence** exercises every path and makes the corresponding
 rejection, eviction, and stale-query counters change on screen. The CTest suite
 also runs `xrbridge_demo --self-test`. `Dockerfile` packages this exact binary
-for Cloud Run; `/healthz` is the container health endpoint.
+for Cloud Run; `/api/health` is the deployment health endpoint.
 
 ## Coordinate contract
 

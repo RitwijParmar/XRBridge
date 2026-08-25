@@ -247,7 +247,7 @@ void handle_client(socket_handle client, const std::string& dashboard) {
     respond(client, "200 OK", "text/html; charset=utf-8", dashboard);
   } else if (method == "GET" && path == "/api/frame") {
     respond(client, "200 OK", "application/json", frame_json());
-  } else if (method == "GET" && path == "/healthz") {
+  } else if (method == "GET" && (path == "/healthz" || path == "/api/health")) {
     respond(client, "200 OK", "application/json", "{\"status\":\"ok\"}");
   } else if (method == "POST" && path == "/api/control/pause") {
     const bool state = !paused.load();
