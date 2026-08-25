@@ -25,6 +25,9 @@ target_include_directories(xrbridge PUBLIC
   $<INSTALL_INTERFACE:include>)
 target_compile_definitions(xrbridge PRIVATE XRBRIDGE_BUILDING_LIBRARY)
 target_link_libraries(xrbridge PRIVATE XRBridge::core)
+if(WIN32)
+  set_target_properties(xrbridge PROPERTIES PREFIX "")
+endif()
 
 if(MSVC)
   target_compile_options(xrbridge_core PRIVATE /W4 /permissive-)
